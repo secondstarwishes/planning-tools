@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mexico and Caribbean Entry Requirements Checker | Second Star Wishes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Raleway:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F2EFEB; --card:#ffffff; --ink:#1a2e2b; --muted:#56706b; --line:#dcd6cd;
+  --teal:#006D77; --mint:#75c8ad; --mint-soft:#e3f3ed; --gold:#C5973A; --gold-soft:#f6ecd9;
+  --no:#b4442f; --no-soft:#f7e3de;
+  --display:"Playfair Display", Georgia, serif; --body:"Raleway","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 28px}
+h1{font-family:var(--display);color:var(--teal);font-size:clamp(24px,5vw,32px);margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px}
+.label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
+select{width:100%;font:600 16px var(--body);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice span{display:inline-block;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
+.choice input:checked + span{background:var(--teal);border-color:var(--teal);color:#fff}
+.choice input:focus-visible + span,select:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+.check{display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--teal)}
+.result{margin-top:16px;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:16px;padding:16px}
+.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:700;color:var(--gold)}
+.result h2{font-family:var(--display);color:var(--teal);font-size:clamp(22px,4.5vw,28px);margin:2px 0 10px}
+.sec{margin-top:14px}
+.sec h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+.item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.sec .item:first-of-type{border-top:0}
+.ico{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;margin-top:1px}
+.ico.need{background:var(--mint-soft);color:var(--teal)}
+.ico.form{background:var(--gold-soft);color:#8a6620}
+.ico.fee{background:var(--no-soft);color:var(--no)}
+.ico.info{background:#eceae6;color:var(--muted)}
+.item a{color:var(--teal);font-weight:700}
+.tip{background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:14px}
+.cta{background:var(--mint-soft);border-radius:12px;padding:14px;font-size:15px;margin-top:12px}
+.cta a{color:var(--teal);font-weight:700}
+.foot{color:var(--muted);font-size:12px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Mexico and Caribbean Entry Checker</h1>
+  <p class="sub">Pick where you're going and how you're getting there. We'll build your travel document checklist for U.S. citizens.</p>
+
+  <div class="panel">
+    <div>
+      <label class="label" for="dest">Where are you going?</label>
+      <select id="dest"></select>
+    </div>
+    <div>
+      <span class="label" id="how-label">How are you getting there?</span>
+      <div class="choices" role="radiogroup" aria-labelledby="how-label">
+        <label class="choice"><input type="radio" name="how" value="fly" checked><span>Flying</span></label>
+        <label class="choice"><input type="radio" name="how" value="loop"><span>Cruise round trip from a U.S. port</span></label>
+        <label class="choice"><input type="radio" name="how" value="oneway"><span>Other cruise (one-way or starts outside the U.S.)</span></label>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="kids"> We're traveling with kids under 18</label>
+  </div>
+
+  <div id="out" aria-live="polite"></div>
+
+  <p class="foot">For U.S. citizens. Checked against the U.S. State Department and each destination's official tourism or immigration site in October 2026. Rules can change, so your Travel Specialist double checks before every trip. Made with love by <a href="https://www.secondstarwishes.com" target="_blank" rel="noopener" style="color:inherit">Second Star Wishes</a>.</p>
+</div>
+
+<script>
+// Each destination: group, passport (flying), validity, visa, forms [[text, url, label]], fees [text], notes [text], kids [text], cruise (extra cruise note), us (true = U.S. territory)
+const D = {
+ mexico: { name: "Mexico", group: "Mexico",
+  validity: "Mexico only needs it to be valid when you arrive. We still suggest 6 months left, just to be safe.",
+  visa: "No visa for stays up to 180 days.",
+  forms: [["No paper tourist card anymore when you fly. Immigration stamps your passport (or you use the e-gates). Check the number of days written by your stamp before you walk away."]],
+  fees: ["Mexico's tourism fee is built into your airfare.",
+         "Cancun, Riviera Maya, Tulum, Isla Mujeres, and Cozumel: the Quintana Roo Visitax is about 285 pesos per person (around $15), babies included. Pay it before you fly home, and only on the official site: <a href=\"https://www.visitax.gob.mx\" target=\"_blank\" rel=\"noopener\">visitax.gob.mx</a>. Cancun airport checks it."],
+  notes: [],
+  kids: ["Mexican citizen kids (dual citizens too) traveling without both parents need a notarized permission letter."],
+  cruise: "Mexico charges cruise passengers a $10 per person port fee (rising to $15 in July 2027). Your cruise line adds it to your bill." },
+ bahamas: { name: "The Bahamas", group: "Caribbean",
+  validity: "Valid for your whole stay.",
+  visa: "No visa for stays up to 90 days.",
+  forms: [], fees: [], notes: ["The State Department says to have 2 blank passport pages."], kids: [] },
+ jamaica: { name: "Jamaica", group: "Caribbean",
+  validity: "Valid when you arrive and when you leave.",
+  visa: "No visa for stays up to 90 days.",
+  forms: [["Free online immigration and customs form, up to 30 days before you fly.", "https://enterjamaica.com", "EnterJamaica.com"]],
+  fees: [], notes: ["The form is free. Skip any website that charges for it."],
+  kids: ["If only one parent is traveling, bring a notarized consent letter from the other parent (or proof of sole custody)."] },
+ dr: { name: "Dominican Republic (Punta Cana)", group: "Caribbean",
+  validity: "At least 6 months left from the day you arrive.",
+  visa: "No visa for stays up to 30 days. The $10 tourist card is included in your airfare.",
+  forms: [["Free eTicket for EACH person, once for arrival and again for departure.", "https://eticket.migracion.gob.do", "eticket.migracion.gob.do"]],
+  fees: [], notes: [], kids: [],
+  cruise: "Bring a passport with 6 months left. Cruise guests going ashore without one may be charged about $125 a day for an immigration escort." },
+ pr: { name: "Puerto Rico", group: "U.S. territories", us: true,
+  notes: ["Puerto Rico is part of the U.S., so it's a domestic flight. No passport needed."], kids: ["Kids under 18 don't need ID to fly within the U.S. when they're with an adult."] },
+ usvi: { name: "U.S. Virgin Islands", group: "U.S. territories", us: true,
+  notes: ["It's a domestic flight, so no passport needed to get there.",
+          "Flying home, you go through U.S. Customs at the airport. Bring a passport, or a birth certificate plus photo ID, to prove you're a U.S. citizen."],
+  kids: ["Bring each child's passport or birth certificate for the Customs check on the way home."] },
+ tci: { name: "Turks and Caicos", group: "Caribbean",
+  validity: "At least 3 months left when you arrive (State Department).",
+  visa: "No visa for stays up to 90 days.",
+  forms: [], fees: [], notes: ["The State Department says to have 2 blank passport pages."], kids: [] },
+ cayman: { name: "Cayman Islands", group: "Caribbean",
+  validity: "Valid when you arrive and when you leave.",
+  visa: "No visa needed for a vacation.",
+  forms: [], fees: [], notes: [], kids: [] },
+ aruba: { name: "Aruba", group: "Caribbean",
+  validity: "Valid for your whole stay.",
+  visa: "No visa needed. Stays over 30 days need an extension.",
+  forms: [["ED card for EVERY traveler, babies too. Fill it out within 7 days before you arrive. Only use the official free site.", "https://www.edcardaruba.aw", "edcardaruba.aw"]],
+  fees: ["$20 Sustainability Fee per person, ages 8 and up, paid with your ED card."],
+  notes: ["Flying home, you clear U.S. Customs in Aruba before you board. Get to the airport about 3 hours early."],
+  kids: ["Every child needs their own ED card too."],
+  cruise: "Most cruise guests on a port day don't need an ED card." },
+ curacao: { name: "Curaçao", group: "Caribbean",
+  validity: "Valid for your whole stay.",
+  visa: "No visa for stays up to 6 months.",
+  forms: [["Digital Immigration Card for every traveler, filled out online before you arrive.", "https://dicardcuracao.com", "dicardcuracao.com"]],
+  fees: [], notes: [], kids: [] },
+ bonaire: { name: "Bonaire", group: "Caribbean",
+  validity: "Valid for your whole stay.",
+  visa: "No visa for stays up to 180 days.",
+  forms: [],
+  fees: ["Visitor entry tax: $75 per person ages 13 and up, $10 for kids 12 and under. Pay online up to 7 days before you arrive, only on the official site:<br><a href=\"https://tourismtax.bonairegov.com\" target=\"_blank\" rel=\"noopener\">tourismtax.bonairegov.com</a>."],
+  notes: ["Have your return ticket and hotel confirmation handy. They can ask for both."], kids: [],
+  cruise: "Bonaire's $10 cruise passenger tax is collected by your cruise line." },
+ stlucia: { name: "St. Lucia", group: "Caribbean",
+  validity: "Valid for your whole stay.",
+  visa: "No visa needed with a return ticket, a hotel confirmation, and enough money for your trip.",
+  forms: [["Free electronic immigration form, up to 3 days before you fly. One form per family. You'll get a QR code to show on arrival.", "https://travelslu.govt.lc/en", "travelslu.govt.lc"]],
+  fees: [], notes: [], kids: [] },
+ antigua: { name: "Antigua", group: "Caribbean",
+  validity: "Valid for at least 180 days AFTER the day you leave Antigua. This one catches people!",
+  visa: "No visa needed with a return ticket and hotel confirmation.",
+  forms: [["ArriveAntigua online form within 72 hours of your flight. You'll get a QR code for arrival and departure.", "https://arriveantigua.com", "ArriveAntigua.com"]],
+  fees: [], notes: [], kids: [] },
+ barbados: { name: "Barbados", group: "Caribbean",
+  validity: "Valid when you arrive.",
+  visa: "No visa for stays up to 6 months.",
+  forms: [["Online ED form at least 24 hours before you fly. Save the email receipts to show at the airport.", "https://www.travelform.gov.bb", "travelform.gov.bb"]],
+  fees: [], notes: ["Have proof of your flight home handy."], kids: [] },
+ grenada: { name: "Grenada", group: "Caribbean",
+  validity: "At least 6 months left from the day you arrive.",
+  visa: "No visa needed. You're allowed up to 3 months.",
+  forms: [], fees: [], notes: ["Have proof of your flight home handy."], kids: [] },
+ sxm: { name: "St. Maarten / St. Martin", group: "Caribbean",
+  validity: "Valid for your whole stay.",
+  visa: "No visa for stays up to 6 months.",
+  forms: [["Digital ED card for every traveler. Easiest to do online before your flight.", "https://www.entry.sx", "entry.sx"]],
+  fees: [], notes: ["Have your return ticket and hotel confirmation handy."], kids: [] },
+ bvi: { name: "British Virgin Islands", group: "Caribbean",
+  validity: "Valid when you arrive.",
+  visa: "No visa for stays up to 1 month.",
+  forms: [],
+  fees: ["$10 environmental and tourism levy per person, ages 3 and up."],
+  notes: ["Most families get there by ferry from St. Thomas. You still need a passport book for the BVI."], kids: [],
+  cruise: "Cruise passengers don't pay the BVI's $10 visitor levy." }
+};
+
+(function(){
+  const $ = id => document.getElementById(id);
+  const sel = $("dest");
+  const groups = {};
+  Object.entries(D).forEach(([k,v]) => { (groups[v.group] = groups[v.group] || []).push([k,v]); });
+  ["Mexico","Caribbean","U.S. territories"].forEach(g => {
+    const og = document.createElement("optgroup"); og.label = g;
+    groups[g].sort((a,b) => a[1].name.localeCompare(b[1].name)).forEach(([k,v]) => {
+      const o = document.createElement("option"); o.value = k; o.textContent = v.name; og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  sel.value = "mexico";
+
+  const item = (cls, sym, html) => '<div class="item"><span class="ico ' + cls + '" aria-hidden="true">' + sym + '</span><div>' + html + '</div></div>';
+  const link = (url, label) => '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>';
+  const sec = (title, rows) => rows.length ? '<div class="sec"><h3>' + title + '</h3>' + rows.join("") + '</div>' : "";
+
+  function render(){
+    const d = D[sel.value];
+    const how = document.querySelector('input[name="how"]:checked').value;
+    const kids = $("kids").checked;
+    const need = [], forms = [], fees = [], good = [];
+
+    if (how === "fly") {
+      if (d.us) {
+        need.push(item("need","✓","<b>A REAL ID-compliant driver's license</b> (look for the star) or a passport. No passport required."));
+      } else {
+        need.push(item("need","✓","<b>A U.S. passport book.</b> Passport cards don't work for international flights."));
+        need.push(item("need","✓","<b>Passport validity:</b> " + d.validity));
+        need.push(item("need","✓","<b>Visa:</b> " + d.visa));
+        d.forms.forEach(f => forms.push(item("form","!", f[0] + (f[1] ? "<br>" + link(f[1], f[2]) : ""))));
+        if (!d.forms.length) forms.push(item("info","i","No online entry form needed right now."));
+        d.fees.forEach(f => fees.push(item("fee","$", f)));
+      }
+      d.notes.forEach(n => good.push(item("info","i", n)));
+    } else if (how === "loop") {
+      need.push(item("need","✓","<b>A U.S. passport book or passport card</b>, OR an original or certified <b>birth certificate plus a government photo ID</b> (ages 16 and up). Kids under 16 just need a birth certificate."));
+      need.push(item("need","✓","<b>We strongly recommend a passport book anyway.</b> If you miss the ship or have an emergency, you'll need one to fly home."));
+      if (d.cruise) good.push(item("info","i", d.cruise));
+      good.push(item("info","i","Island entry forms and fees are usually handled by your cruise line on a port day. Your cruise line will tell you if anything is needed."));
+    } else {
+      need.push(item("need","✓","<b>A U.S. passport book.</b> One-way cruises and cruises that start or end outside the U.S. don't qualify for the birth certificate option."));
+      if (!d.us) need.push(item("need","✓","<b>Passport validity:</b> " + (d.validity || "Valid for your whole trip.") + " Your cruise line may require 6 months left, so check your cruise documents."));
+      if (d.cruise) good.push(item("info","i", d.cruise));
+      good.push(item("info","i","If you're flying in or out of the islands before or after your cruise, use the Flying option too."));
+    }
+
+    if (kids) {
+      const k = [];
+      if (how === "fly" && !d.us) k.push(item("need","✓","Every child, even babies, needs their own passport book."));
+      k.push(item("need","✓","Bring a copy of each child's birth certificate."));
+      k.push(item("need","✓","If a parent isn't coming on the trip, bring a notarized letter from that parent saying it's OK. Airlines and cruise lines can ask for it."));
+      (d.kids || []).forEach(t => k.push(item("info","i", t)));
+      good.push(...k);
+    }
+
+    let html = '<div class="result"><div class="eyebrow">Your checklist</div><h2>' + d.name + '</h2>';
+    html += sec("What you need", need);
+    html += sec("Do before you go", forms);
+    html += sec("Fees to know about", fees);
+    html += sec(kids ? "Good to know (and for the kids)" : "Good to know", good);
+    html += '</div>';
+    html += '<div class="tip">TIP: Check your passport expiration date today. Routine renewals can take several weeks, and some islands want months left on it after you travel.</div>';
+    html += '<div class="cta">Want someone to double check every document for your trip? Your Second Star Wishes Travel Specialist does that for every client. <a href="https://www.secondstarwishes.com/portal" target="_blank" rel="noopener">Start planning with us</a></div>';
+    $("out").innerHTML = html;
+  }
+  sel.addEventListener("change", render);
+  document.querySelectorAll('input[name="how"]').forEach(r => r.addEventListener("change", render));
+  $("kids").addEventListener("change", render);
+  render();
+})();
+</script>
+</body>
+</html>
