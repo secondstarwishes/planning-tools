@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Disney Dining Reservation Calculator | Second Star Wishes</title>
+<meta name="description" content="Find the exact date and time Disney dining reservations open for your Walt Disney World or Disneyland trip.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Raleway:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F2EFEB; --card:#ffffff; --ink:#1a2e2b; --muted:#56706b; --line:#dcd6cd;
+  --teal:#006D77; --mint:#75c8ad; --mint-soft:#e3f3ed; --gold:#C5973A; --gold-soft:#f6ecd9;
+  --display:"Playfair Display", Georgia, serif; --body:"Raleway","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 32px}
+h1{font-family:var(--display);color:var(--teal);font-size:clamp(24px,5vw,32px);margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 18px}
+form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:16px}
+.row{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+input,select{width:100%;font:500 16px var(--body);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--mint);outline-offset:1px;border-color:var(--teal)}
+fieldset{border:0;padding:0;margin:0}
+legend{font-weight:600;font-size:14px;margin-bottom:6px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice span{display:inline-block;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
+.choice input:checked + span{background:var(--teal);border-color:var(--teal);color:#fff}
+.choice input:focus-visible + span{outline:3px solid var(--mint);outline-offset:2px}
+.hint{color:var(--muted);font-size:13px;margin-top:6px}
+button{font:700 16px var(--body);background:var(--teal);color:#fff;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;justify-self:start}
+.result{margin-top:20px;display:grid;gap:14px}
+.big{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:16px;padding:18px}
+.big .eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:700;color:var(--gold)}
+.big .date{font-family:var(--display);font-size:clamp(24px,5vw,30px);color:var(--teal);margin:4px 0}
+.big p{margin:6px 0 0}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:15px}
+th{background:var(--mint-soft);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.tip{background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:15px}
+.cta{background:var(--mint-soft);border-radius:12px;padding:14px;font-size:15px}
+.cta a{color:var(--teal);font-weight:700}
+.err{color:#b4442f;font-weight:600}
+.foot{color:var(--muted);font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Disney Dining Reservation Calculator</h1>
+  <p class="sub">Find out exactly when you can book Disney dining for your trip.</p>
+
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>Where are you going?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="dest" value="wdw" checked><span>Walt Disney World</span></label>
+        <label class="choice"><input type="radio" name="dest" value="dl"><span>Disneyland</span></label>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <div>
+        <label for="checkin" id="checkin-label">Check-in date</label>
+        <input type="date" id="checkin" required>
+      </div>
+      <div>
+        <label for="nights">How many nights?</label>
+        <input type="number" id="nights" min="1" max="30" value="5" inputmode="numeric">
+      </div>
+    </div>
+
+    <fieldset id="resort-wrap">
+      <legend>Are you staying at a Disney Resort hotel?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="resort" value="yes" checked><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="resort" value="no"><span>No, off-site</span></label>
+      </div>
+      <div class="hint">Disney Resort hotel guests can book dining for their whole stay (up to 10 days) on one day.</div>
+    </fieldset>
+
+    <button type="submit">Find my dates</button>
+    <div id="err" class="err" role="alert" hidden></div>
+  </form>
+
+  <div id="out" class="result" aria-live="polite" hidden></div>
+
+  <p class="foot">Based on Disney's current 60-day booking window. Disney can change its rules, so we double check every client's dates. Made with love by <a href="https://www.secondstarwishes.com" target="_blank" rel="noopener" style="color:inherit">Second Star Wishes</a>, an Authorized Disney Vacation Planner.</p>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const WINDOW = 60, PLUS = 10;
+  const fmtLong = d => d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric",timeZone:"UTC"});
+  const fmtShort = d => d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"});
+  const addDays = (d,n) => { const x = new Date(d.getTime()); x.setUTCDate(x.getUTCDate()+n); return x; };
+  const parse = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3])) : null; };
+  const todayUTC = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
+  const daysUntil = d => Math.round((d - todayUTC())/86400000);
+  const when = d => { const n = daysUntil(d); if (n > 1) return "in " + n + " days"; if (n === 1) return "tomorrow"; if (n === 0) return "today"; return "already open"; };
+  const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
+
+  function syncDest(){
+    const dl = document.querySelector('input[name="dest"]:checked').value === "dl";
+    $("resort-wrap").hidden = dl;
+  }
+  document.querySelectorAll('input[name="dest"]').forEach(r => r.addEventListener("change", syncDest));
+
+  // Default check-in: 90 days from today
+  const def = addDays(todayUTC(), 90);
+  $("checkin").value = def.toISOString().slice(0,10);
+  syncDest();
+
+  $("f").addEventListener("submit", e => {
+    e.preventDefault();
+    const err = $("err"); err.hidden = true;
+    const ci = parse($("checkin").value);
+    const nights = Math.max(1, Math.min(30, parseInt($("nights").value, 10) || 0));
+    if (!ci){ err.textContent = "Pick your check-in date to see your booking dates."; err.hidden = false; return; }
+    const dest = document.querySelector('input[name="dest"]:checked').value;
+    const resort = dest === "wdw" && document.querySelector('input[name="resort"]:checked').value === "yes";
+    const tz = dest === "wdw" ? "6:00 a.m. Eastern" : "6:00 a.m. Pacific";
+    const days = nights + 1; // check-in through check-out day
+    const out = $("out"); out.textContent = ""; out.hidden = false;
+
+    const open = addDays(ci, -WINDOW);
+    const big = el("div","big");
+    big.appendChild(el("div","eyebrow","Your first booking day"));
+    big.appendChild(el("div","date", fmtLong(open)));
+    big.appendChild(el("p",null,"Reservations open at " + tz + " (" + when(open) + ")."));
+    if (resort){
+      const covered = Math.min(days, PLUS);
+      big.appendChild(el("p",null,"Because you're staying at a Disney Resort hotel, you can book dining for the first " + covered + " days of your stay that morning, all at once."));
+    } else {
+      big.appendChild(el("p",null,"You'll book one day at a time, exactly 60 days before each day you want to dine."));
+    }
+    out.appendChild(big);
+
+    const box = el("div","tablebox");
+    const tbl = el("table");
+    const thead = el("thead"); const hr = el("tr");
+    ["Trip day","Dining date","Booking opens"].forEach(h => hr.appendChild(el("th",null,h)));
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tb = el("tbody");
+    for (let i = 0; i < days; i++){
+      const dine = addDays(ci, i);
+      let opens;
+      if (resort && i < PLUS) opens = open;
+      else opens = addDays(dine, -WINDOW);
+      const tr = el("tr");
+      tr.appendChild(el("td",null, i === 0 ? "Check-in" : (i === days - 1 ? "Check-out" : "Day " + (i+1))));
+      tr.appendChild(el("td",null, fmtShort(dine)));
+      tr.appendChild(el("td",null, fmtShort(opens) + " · " + when(opens)));
+      tb.appendChild(tr);
+    }
+    tbl.appendChild(tb); box.appendChild(tbl); out.appendChild(box);
+
+    const tip = el("div","tip");
+    tip.textContent = dest === "wdw"
+      ? (resort ? "TIP: Link your resort reservation in the My Disney Experience app before booking day, and be signed in by 5:55 a.m. Eastern. Book the hardest tables first, like Cinderella's Royal Table, Space 220, and Topolino's Terrace."
+                : "TIP: Staying off-site means one day at a time. Set an alarm for 5:55 a.m. Eastern 60 days before each day you want a big reservation.")
+      : "TIP: Disneyland dining opens 60 days out at 6:00 a.m. Pacific in the Disneyland app. Book character meals and Oga's Cantina first.";
+    out.appendChild(tip);
+
+    const cta = el("div","cta");
+    cta.appendChild(document.createTextNode("Don't want to wake up at 6 a.m.? Your Second Star Wishes Travel Specialist can book your dining the moment your window opens. "));
+    const a = el("a",null,"Start planning with us"); a.href = "https://www.secondstarwishes.com/portal"; a.target = "_blank"; a.rel = "noopener";
+    cta.appendChild(a);
+    out.appendChild(cta);
+    out.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+})();
+</script>
+</body>
+</html>
