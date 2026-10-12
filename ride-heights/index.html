@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Can My Kid Ride It? Ride Height Checker | Second Star Wishes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Raleway:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F2EFEB; --card:#ffffff; --ink:#1a2e2b; --muted:#56706b; --line:#dcd6cd;
+  --teal:#006D77; --mint:#75c8ad; --mint-soft:#e3f3ed; --gold:#C5973A; --gold-soft:#f6ecd9;
+  --no:#b4442f; --no-soft:#f7e3de; --grey-soft:#eceae6;
+  --display:"Playfair Display", Georgia, serif; --body:"Raleway","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 28px}
+h1{font-family:var(--display);color:var(--teal);font-size:clamp(24px,5vw,32px);margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px}
+.label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice span{display:inline-block;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
+.choice input:checked + span{background:var(--teal);border-color:var(--teal);color:#fff}
+.choice input:focus-visible + span{outline:3px solid var(--mint);outline-offset:2px}
+.hrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hrow input[type=number]{width:110px;font:600 20px var(--body);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px}
+.hrow input[type=range]{flex:1;min-width:180px;accent-color:var(--teal)}
+.unit{display:flex;gap:6px}
+.unit button{font:600 13px var(--body);border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+.unit button[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+input:focus-visible,button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
+.summary{margin:16px 0 4px;font-weight:600}
+.summary b{color:var(--teal);font-family:var(--display);font-size:22px}
+.park{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.park summary{list-style:none;cursor:pointer;margin:0;padding:12px 14px;font-size:17px;font-weight:700;font-family:var(--display);background:var(--mint-soft);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.park summary::-webkit-details-marker{display:none}.park summary::after{content:"Show rides";font:600 13px var(--body);color:var(--teal);margin-left:auto}.park[open] summary::after{content:"Hide"}
+.park summary small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:600;align-self:center}
+.ride{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-top:1px solid var(--line)}
+.ride:first-of-type{border-top:0}
+.badge{flex:none;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;margin-top:1px;min-width:86px;text-align:center}
+.yes{background:var(--mint-soft);color:var(--teal)}
+.with{background:var(--gold-soft);color:#8a6620}
+.no{background:var(--no-soft);color:var(--no)}
+.closed{background:var(--grey-soft);color:var(--muted)}
+.rname{font-weight:600}
+.rmeta{color:var(--muted);font-size:13px}
+.tip{background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:14px}
+.cta{background:var(--mint-soft);border-radius:12px;padding:14px;font-size:15px;margin-top:12px}
+.cta a{color:var(--teal);font-weight:700}
+.foot{color:var(--muted);font-size:12px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Can My Kid Ride It?</h1>
+  <p class="sub">Enter your child's height to see every ride they can ride at Disney and Universal.</p>
+
+  <div class="panel">
+    <div>
+      <span class="label" id="dest-label">Where are you going?</span>
+      <div class="choices" role="radiogroup" aria-labelledby="dest-label" id="dests"></div>
+    </div>
+    <div>
+      <label class="label" for="h">Your child's height (with shoes on)</label>
+      <div class="hrow">
+        <input type="number" id="h" inputmode="decimal" min="20" max="80" step="0.5" value="40" aria-describedby="unitnote">
+        <div class="unit" role="group" aria-label="Units">
+          <button type="button" id="u-in" aria-pressed="true">inches</button>
+          <button type="button" id="u-cm" aria-pressed="false">cm</button>
+        </div>
+        <input type="range" id="r" min="30" max="60" step="0.5" value="40" aria-label="Height slider in inches">
+      </div>
+      <div class="rmeta" id="unitnote">Parks measure with shoes on, so measure the same way at home.</div>
+    </div>
+  </div>
+
+  <div id="out" aria-live="polite"></div>
+
+  <p class="foot">Heights checked against official park info and current guides in October 2026. Parks can change requirements and close rides for refurbishment, so always check the park app on the day. Made with love by <a href="https://www.secondstarwishes.com" target="_blank" rel="noopener" style="color:inherit">Second Star Wishes</a>.</p>
+</div>
+
+<script>
+// min/max in inches. comp = "companion needed under 48 in" (Universal rule). status: open|refurb. note shown under ride.
+window.RIDES = {
+ wdw: { name: "Walt Disney World", swap: "Rider Switch", parks: {
+  "Magic Kingdom": [
+   ["Tomorrowland Speedway",32,0,"54 in to drive alone"],
+   ["The Barnstormer",35],["Seven Dwarfs Mine Train",38],
+   ["Big Thunder Mountain Railroad",38,0,"Lowered from 40 in when it reopened in May 2026"],
+   ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet"],["Space Mountain",44],["TRON Lightcycle / Run",48]],
+  "EPCOT": [
+   ["Mission: SPACE (Green, no spinning)",40],["Test Track",40],["Soarin'",40],
+   ["Guardians of the Galaxy: Cosmic Rewind",42],["Mission: SPACE (Orange, spinning)",44]],
+  "Hollywood Studios": [
+   ["Alien Swirling Saucers",32],["Slinky Dog Dash",38],["Millennium Falcon: Smugglers Run",38],
+   ["Star Wars: Rise of the Resistance",40],["Star Tours",40],["The Twilight Zone Tower of Terror",40],
+   ["Rock 'n' Roller Coaster Starring The Muppets",48]],
+  "Animal Kingdom": [
+   ["Kali River Rapids",38,0,"You'll get wet"],["Expedition Everest",44],["Avatar Flight of Passage",44]]
+ }},
+ dl: { name: "Disneyland", swap: "Rider Switch", parks: {
+  "Disneyland Park": [
+   ["Autopia",32,0,"54 in to drive alone"],["Chip 'n' Dale's GADGETcoaster",35],
+   ["Millennium Falcon: Smugglers Run",38],["Big Thunder Mountain Railroad",40],["Space Mountain",40],
+   ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet"],["Star Wars: Rise of the Resistance",40],["Star Tours",40],
+   ["Matterhorn Bobsleds",42],["Indiana Jones Adventure",46,0,"Closed for refurbishment, reopening date not announced","refurb"]],
+  "Disney California Adventure": [
+   ["Luigi's Rollickin' Roadsters",32],["Mater's Junkyard Jamboree",32],["Radiator Springs Racers",40],
+   ["Guardians of the Galaxy: Mission BREAKOUT!",40],["Soarin'",40],["Jumpin' Jellyfish",40],
+   ["Silly Symphony Swings",40,0,"48 in to ride a single swing alone"],["Grizzly River Run",42,0,"You'll get wet"],
+   ["Goofy's Sky School",42],["Incredicoaster",48]]
+ }},
+ uo: { name: "Universal Orlando", swap: "Child Swap", comp: true, parks: {
+  "Universal Studios Florida": [
+   ["E.T. Adventure",34],["Trolls Trollercoaster",36],["Despicable Me Minion Mayhem",40,0,"Under 40 in can use the non-moving seats"],
+   ["Race Through New York Starring Jimmy Fallon",40],["The Simpsons Ride",40],["TRANSFORMERS: The Ride-3D",40],
+   ["Harry Potter and the Escape from Gringotts",42],["MEN IN BLACK Alien Attack",42],["Revenge of the Mummy",48]],
+  "Islands of Adventure": [
+   ["The Cat in the Hat",36],["The High in the Sky Seuss Trolley Train Ride!",36],["Flight of the Hippogriff",36],
+   ["Skull Island: Reign of Kong",36],["Pteranodon Flyers",36,56,"Built for kids 36 to 56 in; taller adults ride only with a child"],
+   ["The Amazing Adventures of Spider-Man",40],["Popeye & Bluto's Bilge-Rat Barges",42],
+   ["Jurassic Park River Adventure",42,0,"Closed for refurbishment, reopening planned for Nov 20, 2026","refurb"],
+   ["Dudley Do-Right's Ripsaw Falls",44],["Harry Potter and the Forbidden Journey",48],
+   ["Hagrid's Magical Creatures Motorbike Adventure",48],["Jurassic World VelociCoaster",51],
+   ["Doctor Doom's Fearfall",52],["The Incredible Hulk Coaster",54]],
+  "Epic Universe": [
+   ["Yoshi's Adventure",34],["Mario Kart: Bowser's Challenge",40],["Mine-Cart Madness",40],
+   ["Harry Potter and the Battle at the Ministry",40],["Hiccup's Wing Gliders",40],["Curse of the Werewolf",40],
+   ["Stardust Racers",48],["Dragon Racer's Rally",48],["Monsters Unchained: The Frankenstein Experiment",48]]
+ }},
+ ush: { name: "Universal Studios Hollywood", swap: "Child Switch", comp: true, parks: {
+  "Universal Studios Hollywood": [
+   ["The Secret Life of Pets: Off the Leash!",34],["Flight of the Hippogriff",39],
+   ["Despicable Me Minion Mayhem",40,0,"Under 40 in can use the non-moving seats"],["The Simpsons Ride",40],
+   ["Mario Kart: Bowser's Challenge",40],["TRANSFORMERS: The Ride-3D",40],["Jurassic World - The Ride",42,0,"You'll get wet"],
+   ["Harry Potter and the Forbidden Journey",48],["Revenge of the Mummy - The Ride",48],
+   ["Fast & Furious: Hollywood Drift",51,0,"New in 2026"]]
+ }}
+};
+
+(function(){
+  const R = window.RIDES;
+  const $ = id => document.getElementById(id);
+  const el = (t,c,txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
+  let dest = "wdw", unit = "in";
+  const keys = Object.keys(R);
+  keys.forEach((k,i) => {
+    const lab = el("label","choice");
+    const inp = el("input"); inp.type = "radio"; inp.name = "dest"; inp.value = k; if (i === 0) inp.checked = true;
+    inp.addEventListener("change", () => { dest = k; render(); });
+    lab.append(inp, el("span", null, R[k].name));
+    $("dests").appendChild(lab);
+  });
+  const toIn = v => unit === "cm" ? v / 2.54 : v;
+  const fmt = n => (Math.round(n * 2) / 2).toString();
+  function setUnit(u){
+    const cur = toIn(parseFloat($("h").value) || 0);
+    unit = u;
+    $("u-in").setAttribute("aria-pressed", u === "in"); $("u-cm").setAttribute("aria-pressed", u === "cm");
+    $("h").value = u === "cm" ? Math.round(cur * 2.54) : fmt(cur);
+    $("h").step = u === "cm" ? "1" : "0.5";
+    render();
+  }
+  $("u-in").addEventListener("click", () => setUnit("in"));
+  $("u-cm").addEventListener("click", () => setUnit("cm"));
+  $("h").addEventListener("input", () => { const v = toIn(parseFloat($("h").value)); if (!isNaN(v)) $("r").value = v; render(); });
+  $("r").addEventListener("input", () => { const v = parseFloat($("r").value); $("h").value = unit === "cm" ? Math.round(v * 2.54) : fmt(v); render(); });
+
+  let openParks = null;
+  function render(){
+    const out = $("out");
+    const prev = out.querySelectorAll("details.park");
+    if (prev.length) { openParks = new Set(); prev.forEach(x => { if (x.open) openParks.add(x.dataset.park); }); }
+    out.textContent = "";
+    const hv = parseFloat($("h").value);
+    if (isNaN(hv)) { out.appendChild(el("p","summary","Enter a height to see the rides.")); return; }
+    const h = toIn(hv);
+    const d = R[dest];
+    let total = 0, can = 0;
+    const parks = el("div");
+    Object.keys(d.parks).forEach(p => {
+      const box = el("details","park"); box.dataset.park = dest + ":" + p; box.open = openParks ? openParks.has(dest + ":" + p) || (![...openParks].some(x => x.startsWith(dest + ":")) && Object.keys(d.parks)[0] === p) : Object.keys(d.parks)[0] === p;
+      const rides = d.parks[p];
+      let parkCan = 0, parkTotal = 0;
+      const list = el("div");
+      rides.slice().sort((a,b) => a[1] - b[1]).forEach(r => {
+        const [name, min, max, note, status] = r;
+        const row = el("div","ride");
+        let cls, txt;
+        if (status === "refurb") { cls = "closed"; txt = "Closed now"; }
+        else {
+          parkTotal++;
+          if (h < min) { cls = "no"; txt = "Not yet"; }
+          else if (max && h > max) { cls = "with"; txt = "With a child"; parkCan++; }
+          else if (d.comp && h < 48) { cls = "with"; txt = "With an adult"; parkCan++; }
+          else { cls = "yes"; txt = "Can ride"; parkCan++; }
+        }
+        const info = el("div");
+        info.appendChild(el("div","rname", name));
+        let meta = "Minimum " + min + " in (" + Math.round(min * 2.54) + " cm)" + (max ? ", maximum " + max + " in" : "");
+        if (cls === "no") { const go = min - h; meta += " · " + fmt(go) + " in to go"; }
+        if (cls === "with" && d.comp && h < 48 && !(max && h > max)) meta += " · riders under 48 in need a companion 14 or older";
+        if (note) meta += " · " + note;
+        info.appendChild(el("div","rmeta", meta));
+        row.append(el("span","badge " + cls, txt), info);
+        list.appendChild(row);
+      });
+      total += parkTotal; can += parkCan;
+      const h2 = el("summary"); h2.appendChild(document.createTextNode(p)); h2.appendChild(el("small", null, parkCan + " of " + parkTotal + " rides"));
+      box.append(h2, list);
+      parks.appendChild(box);
+    });
+    const sum = el("p","summary");
+    sum.append("At ", el("b", null, fmt(h) + " in"), ", your child can ride " + can + " of " + total + " rides with a height requirement at " + d.name + ".");
+    out.appendChild(sum);
+    out.appendChild(parks);
+    const tip = el("div","tip");
+    tip.textContent = "TIP: Too short for a big ride? Use " + d.swap + ". One adult rides while the other waits with your little one, then you switch without waiting in line again. And every ride without a height requirement (like Peter Pan's Flight or the Hogwarts Express) is open to everyone.";
+    out.appendChild(tip);
+    const cta = el("div","cta");
+    cta.append("Want a day-by-day plan built around the rides your kids can actually ride? ");
+    const a = el("a",null,"Start planning with us"); a.href = "https://www.secondstarwishes.com/portal"; a.target = "_blank"; a.rel = "noopener";
+    cta.appendChild(a);
+    out.appendChild(cta);
+  }
+  render();
+})();
+</script>
+</body>
+</html>
