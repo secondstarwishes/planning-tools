@@ -84,14 +84,14 @@ input:focus-visible,button:focus-visible{outline:3px solid var(--mint);outline-o
 </div>
 
 <script>
-// min/max in inches. comp = "companion needed under 48 in" (Universal rule). status: open|refurb. note shown under ride.
+// min/max in inches. comp = "companion needed under 48 in" (Universal rule). status: "refurb" = closed now, or {from,to} ISO dates = closed during those dates. note shown under ride.
 window.RIDES = {
  wdw: { name: "Walt Disney World", swap: "Rider Switch", parks: {
   "Magic Kingdom": [
    ["Tomorrowland Speedway",32,0,"54 in to drive alone"],
    ["The Barnstormer",35],["Seven Dwarfs Mine Train",38],
    ["Big Thunder Mountain Railroad",38,0,"Lowered from 40 in when it reopened in May 2026"],
-   ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet"],["Space Mountain",44],["TRON Lightcycle / Run",48]],
+   ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet · Closed for refurbishment Nov 2 to mid-December 2026",{from:"2026-11-02",to:"2026-12-17"}],["Space Mountain",44],["TRON Lightcycle / Run",48]],
   "EPCOT": [
    ["Mission: SPACE (Green, no spinning)",40],["Test Track",40],["Soarin'",40],
    ["Guardians of the Galaxy: Cosmic Rewind",42],["Mission: SPACE (Orange, spinning)",44]],
@@ -123,7 +123,7 @@ window.RIDES = {
    ["The Cat in the Hat",36],["The High in the Sky Seuss Trolley Train Ride!",36],["Flight of the Hippogriff",36],
    ["Skull Island: Reign of Kong",36],["Pteranodon Flyers",36,56,"Built for kids 36 to 56 in; taller adults ride only with a child"],
    ["The Amazing Adventures of Spider-Man",40],["Popeye & Bluto's Bilge-Rat Barges",42],
-   ["Jurassic Park River Adventure",42,0,"Closed for refurbishment, reopening planned for Nov 20, 2026","refurb"],
+   ["Jurassic Park River Adventure",42,0,"Closed for refurbishment, reopening pushed to mid-December 2026","refurb"],
    ["Dudley Do-Right's Ripsaw Falls",44],["Harry Potter and the Forbidden Journey",48],
    ["Hagrid's Magical Creatures Motorbike Adventure",48],["Jurassic World VelociCoaster",51],
    ["Doctor Doom's Fearfall",52],["The Incredible Hulk Coaster",54]],
@@ -191,7 +191,9 @@ window.RIDES = {
         const [name, min, max, note, status] = r;
         const row = el("div","ride");
         let cls, txt;
-        if (status === "refurb") { cls = "closed"; txt = "Closed now"; }
+        const today = new Date().toISOString().slice(0,10);
+        const closedNow = status === "refurb" || (status && status.from && today >= status.from && today <= status.to);
+        if (closedNow) { cls = "closed"; txt = "Closed now"; }
         else {
           parkTotal++;
           if (h < min) { cls = "no"; txt = "Not yet"; }
