@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Disney + Universal Wait Times | Second Star Wishes</title>
+<meta name="description" content="Live ride wait times for Walt Disney World, Disneyland, Universal Orlando and Universal Studios Hollywood. Free from Second Star Wishes, powered by Queue-Times.com.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Raleway:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F2EFEB; --card:#ffffff; --ink:#1a2e2b; --muted:#56706b; --line:#dcd6cd;
+  --teal:#006D77; --mint:#75c8ad; --mint-soft:#e3f3ed; --gold:#C5973A; --gold-soft:#f6ecd9;
+  --no:#b4442f; --no-soft:#f7e3de; --grey-soft:#eceae6;
+  --display:"Playfair Display", Georgia, serif; --body:"Raleway","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 28px}
+h1{font-family:var(--display);color:var(--teal);font-size:clamp(24px,5vw,32px);margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 6px}
+.credit{font-size:13px;color:var(--muted);margin:0 0 16px}
+.credit a,.foot a{color:var(--teal);font-weight:600}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px}
+.label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice span{display:inline-block;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
+.choice input:checked + span{background:var(--teal);border-color:var(--teal);color:#fff}
+.choice input:focus-visible + span{outline:3px solid var(--mint);outline-offset:2px}
+.sortrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sortrow button{font:600 13px var(--body);border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+.sortrow button[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
+.status{margin:16px 0 4px;font-size:14px;color:var(--muted)}
+.status b{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 4px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat .v{font-family:var(--display);font-size:24px;color:var(--teal);line-height:1.2}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600}
+.group{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.group h2{margin:0;padding:10px 14px;font-size:16px;font-family:var(--display);background:var(--mint-soft);color:var(--ink)}
+.ride{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line)}
+.ride:first-of-type{border-top:0}
+.rname{font-weight:600}
+.rmeta{color:var(--muted);font-size:12px}
+.w{flex:none;font-weight:700;border-radius:999px;padding:4px 10px;min-width:74px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
+.w-low{background:var(--mint-soft);color:var(--teal)}
+.w-mid{background:var(--gold-soft);color:#8a6620}
+.w-high{background:var(--no-soft);color:var(--no)}
+.w-closed{background:var(--grey-soft);color:var(--muted);font-weight:600;font-size:13px}
+.note{background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:14px}
+.cta{background:var(--mint-soft);border-radius:12px;padding:14px;font-size:15px;margin-top:12px}
+.cta a{color:var(--teal);font-weight:700}
+.foot{color:var(--muted);font-size:12px;margin-top:16px}
+@media (max-width:420px){.stat .v{font-size:20px}.w{min-width:64px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Live Disney + Universal Wait Times</h1>
+  <p class="sub">See how long the lines are right now at every ride.</p>
+  <p class="credit">Wait times <a href="https://queue-times.com/" target="_blank" rel="noopener">Powered by Queue-Times.com</a></p>
+
+  <div class="panel">
+    <div>
+      <span class="label" id="resort-label">Where are you going?</span>
+      <div class="choices" role="radiogroup" aria-labelledby="resort-label" id="resorts"></div>
+    </div>
+    <div>
+      <span class="label" id="park-label">Which park?</span>
+      <div class="choices" role="radiogroup" aria-labelledby="park-label" id="parks"></div>
+    </div>
+    <div>
+      <span class="label" id="sort-label">Sort rides</span>
+      <div class="sortrow" role="group" aria-labelledby="sort-label">
+        <button type="button" id="s-land" aria-pressed="true">By area of the park</button>
+        <button type="button" id="s-short" aria-pressed="false">Shortest wait first</button>
+        <button type="button" id="s-long" aria-pressed="false">Longest wait first</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="out" aria-live="polite"><p class="status">Loading wait times...</p></div>
+
+  <p class="foot">Wait times are <a href="https://queue-times.com/" target="_blank" rel="noopener">Powered by Queue-Times.com</a> and update about every 15 minutes. Posted waits can change fast, and rides can close without notice, so always check the official park app on the day. Made with love by <a href="https://www.secondstarwishes.com" target="_blank" rel="noopener">Second Star Wishes</a>.</p>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
+  const ORDER = ["wdw","dl","uo","uh"];
+  const state = { data: null, resort: "wdw", park: null, sort: "land" };
+  try { const s = JSON.parse(localStorage.getItem("ssw-waits") || "{}"); Object.assign(state, {resort: s.resort || "wdw", park: s.park || null, sort: s.sort || "land"}); } catch(e){}
+  const save = () => { try { localStorage.setItem("ssw-waits", JSON.stringify({resort: state.resort, park: state.park, sort: state.sort})); } catch(e){} };
+
+  function chip(group, name, value, label, checked, onPick){
+    const l = el("label","choice"); const i = el("input"); i.type = "radio"; i.name = name; i.value = value; i.checked = checked;
+    i.addEventListener("change", () => onPick(value)); l.append(i, el("span", null, label)); group.appendChild(l);
+  }
+  function ago(iso){
+    const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (m < 1) return "just now"; if (m === 1) return "1 minute ago"; if (m < 60) return m + " minutes ago";
+    const h = Math.floor(m / 60); return h === 1 ? "about 1 hour ago" : "about " + h + " hours ago";
+  }
+  function localTime(iso, tz){
+    try { return new Date(iso).toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit", timeZone: tz || undefined}); } catch(e){ return ""; }
+  }
+  function wClass(w){ return w <= 20 ? "w-low" : w <= 45 ? "w-mid" : "w-high"; }
+
+  function renderPickers(){
+    const d = state.data; const rbox = $("resorts"), pbox = $("parks"); rbox.textContent = ""; pbox.textContent = "";
+    const resorts = ORDER.filter(r => d.parks.some(p => p.resort === r));
+    if (!resorts.includes(state.resort)) state.resort = resorts[0];
+    resorts.forEach(r => chip(rbox, "resort", r, d.resorts[r], r === state.resort, v => { state.resort = v; state.park = null; save(); renderPickers(); render(); }));
+    const parks = d.parks.filter(p => p.resort === state.resort);
+    if (!parks.some(p => p.k === state.park)) state.park = parks[0].k;
+    parks.forEach(p => chip(pbox, "park", p.k, p.n, p.k === state.park, v => { state.park = v; save(); render(); }));
+    ["land","short","long"].forEach(s => $("s-" + s).setAttribute("aria-pressed", String(state.sort === s)));
+  }
+
+  function render(){
+    const d = state.data, out = $("out"); out.textContent = "";
+    const p = d.parks.find(x => x.k === state.park); if (!p) return;
+    const rides = p.lands.flatMap(l => l.r.map(r => Object.assign({land: l.n}, r)));
+    const open = rides.filter(r => r.o);
+    const stale = (Date.now() - new Date(d.updated).getTime()) > 90 * 60000;
+
+    const st = el("p","status"); st.append("Updated ", el("b", null, ago(d.updated)), " (" + localTime(d.updated, p.tz) + " park time).");
+    out.appendChild(st);
+    if (stale) out.appendChild(el("div","note","These times haven't updated in a while, so they may be out of date. Check the official park app for the latest."));
+
+    if (!open.length){
+      out.appendChild(el("div","note", p.n + " looks closed right now, so there are no live wait times. Check back during park hours!"));
+    } else {
+      const ws = open.map(r => r.w); const avg = Math.round(ws.reduce((a,b) => a + b, 0) / ws.length);
+      const longest = open.reduce((a,b) => b.w > a.w ? b : a);
+      const stats = el("div","stats");
+      [[avg + " min","Average wait"],[open.length + " of " + rides.length,"Rides open"],[longest.w + " min","Longest: " + longest.n]].forEach(([v,k]) => { const s = el("div","stat"); s.append(el("div","v",v), el("div","k",k)); stats.appendChild(s); });
+      out.appendChild(stats);
+    }
+
+    const row = r => {
+      const d2 = el("div","ride"); const left = el("div");
+      left.appendChild(el("div","rname", r.n));
+      if (state.sort !== "land") left.appendChild(el("div","rmeta", r.land));
+      const badge = r.o ? el("span","w " + wClass(r.w), r.w + " min") : el("span","w w-closed","Closed");
+      d2.append(left, badge); return d2;
+    };
+    if (state.sort === "land"){
+      p.lands.forEach(l => {
+        const g = el("section","group"); g.appendChild(el("h2", null, l.n));
+        l.r.slice().sort((a,b) => (b.o - a.o) || a.n.localeCompare(b.n)).forEach(r => g.appendChild(row(Object.assign({land: l.n}, r))));
+        out.appendChild(g);
+      });
+    } else {
+      const g = el("section","group"); g.appendChild(el("h2", null, state.sort === "short" ? "Shortest waits first" : "Longest waits first"));
+      const dir = state.sort === "short" ? 1 : -1;
+      open.slice().sort((a,b) => dir * (a.w - b.w) || a.n.localeCompare(b.n)).forEach(r => g.appendChild(row(r)));
+      rides.filter(r => !r.o).sort((a,b) => a.n.localeCompare(b.n)).forEach(r => g.appendChild(row(r)));
+      out.appendChild(g);
+    }
+
+    const tip = el("div","note");
+    tip.textContent = "TIP: Lines are usually shortest right at park opening and in the last hour before close. Head to the big rides first, then save shows and slower rides for the busy middle of the day.";
+    out.appendChild(tip);
+    const cta = el("div","cta");
+    cta.append("Want a day-by-day plan that helps you skip the longest lines? ");
+    const a = el("a", null, "Start planning with us"); a.href = "https://www.secondstarwishes.com/portal"; a.target = "_blank"; a.rel = "noopener";
+    cta.appendChild(a); out.appendChild(cta);
+  }
+
+  ["land","short","long"].forEach(s => $("s-" + s).addEventListener("click", () => { state.sort = s; save(); renderPickers(); render(); }));
+
+  async function load(){
+    try {
+      const r = await fetch("data/live.json?t=" + Math.floor(Date.now() / 60000), {cache: "no-store"});
+      if (!r.ok) throw new Error(r.status);
+      state.data = await r.json();
+      renderPickers(); render();
+    } catch(e){
+      if (!state.data){ const out = $("out"); out.textContent = ""; out.appendChild(el("div","note","Wait times aren't available right now. Please check back in a few minutes.")); }
+    }
+  }
+  load();
+  setInterval(load, 5 * 60000);
+  setInterval(() => { const b = document.querySelector(".status b"); if (b && state.data) b.textContent = ago(state.data.updated); }, 60000);
+})();
+</script>
+</body>
+</html>
