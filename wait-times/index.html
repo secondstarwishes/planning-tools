@@ -177,7 +177,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
 
   async function load(){
     try {
-      const r = await fetch("data/live.json?t=" + Math.floor(Date.now() / 60000), {cache: "no-store"});
+      const r = await fetch("https://secondstarwishes.github.io/planning-tools/wait-times/data/live.json?t=" + Math.floor(Date.now() / 60000), {cache: "no-store"});
       if (!r.ok) throw new Error(r.status);
       state.data = await r.json();
       renderPickers(); render();
