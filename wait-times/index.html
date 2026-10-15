@@ -41,6 +41,9 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
 .stat .v{font-family:var(--display);font-size:24px;color:var(--teal);line-height:1.2}
 .stat .k{font-size:12px;color:var(--muted);font-weight:600}
 .group{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.land summary{list-style:none;cursor:pointer;padding:11px 14px;background:var(--mint-soft);display:flex;gap:8px;align-items:center;flex-wrap:wrap}.land summary::-webkit-details-marker{display:none}
+.land summary .lname{font:700 16px var(--display)}.land summary small{color:var(--muted);font-weight:600;font-size:13px;margin-left:auto}
+.land summary::after{content:"Show";font:600 13px var(--body);color:var(--teal)}.land[open] summary::after{content:"Hide"}
 .group h2{margin:0;padding:10px 14px;font-size:16px;font-family:var(--display);background:var(--mint-soft);color:var(--ink)}
 .ride{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line)}
 .ride:first-of-type{border-top:0}
@@ -55,6 +58,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
 .cta{background:var(--mint-soft);border-radius:12px;padding:14px;font-size:15px;margin-top:12px}
 .cta a{color:var(--teal);font-weight:700}
 .foot{color:var(--muted);font-size:12px;margin-top:16px}
+.more{display:block;margin:12px auto 0;font:600 14px var(--body);color:var(--teal);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer}
 @media (max-width:420px){.stat .v{font-size:20px}.w{min-width:64px}}
 </style>
 </head>
@@ -93,7 +97,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
   const $ = id => document.getElementById(id);
   const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
   const ORDER = ["wdw","dl","uo","uh"];
-  const state = { data: null, resort: "wdw", park: null, sort: "land" };
+  const state = { data: null, resort: "wdw", park: null, sort: "land", showClosed: false, showAll: false, openLands: new Set() };
   try { const s = JSON.parse(localStorage.getItem("ssw-waits") || "{}"); Object.assign(state, {resort: s.resort || "wdw", park: s.park || null, sort: s.sort || "land"}); } catch(e){}
   const save = () => { try { localStorage.setItem("ssw-waits", JSON.stringify({resort: state.resort, park: state.park, sort: state.sort})); } catch(e){} };
 
@@ -118,7 +122,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
     resorts.forEach(r => chip(rbox, "resort", r, d.resorts[r], r === state.resort, v => { state.resort = v; state.park = null; save(); renderPickers(); render(); }));
     const parks = d.parks.filter(p => p.resort === state.resort);
     if (!parks.some(p => p.k === state.park)) state.park = parks[0].k;
-    parks.forEach(p => chip(pbox, "park", p.k, p.n, p.k === state.park, v => { state.park = v; save(); render(); }));
+    parks.forEach(p => chip(pbox, "park", p.k, p.n, p.k === state.park, v => { state.park = v; state.showAll = false; save(); render(); }));
     ["land","short","long"].forEach(s => $("s-" + s).setAttribute("aria-pressed", String(state.sort === s)));
   }
 
@@ -147,21 +151,39 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
       const d2 = el("div","ride"); const left = el("div");
       left.appendChild(el("div","rname", r.n));
       if (state.sort !== "land") left.appendChild(el("div","rmeta", r.land));
-      const badge = r.o ? el("span","w " + wClass(r.w), r.w + " min") : el("span","w w-closed","Closed");
+      const badge = r.o ? el("span","w " + wClass(r.w), r.w ? r.w + " min" : "Walk on") : el("span","w w-closed","Closed");
       d2.append(left, badge); return d2;
     };
+    const closed = rides.filter(r => !r.o);
     if (state.sort === "land"){
       p.lands.forEach(l => {
-        const g = el("section","group"); g.appendChild(el("h2", null, l.n));
-        l.r.slice().sort((a,b) => (b.o - a.o) || a.n.localeCompare(b.n)).forEach(r => g.appendChild(row(Object.assign({land: l.n}, r))));
+        const rs = l.r.filter(r => r.o || state.showClosed).sort((a,b) => (b.o - a.o) || a.n.localeCompare(b.n));
+        if (!rs.length) return;
+        const g = el("details","group land"); g.dataset.land = l.n; g.open = state.openLands.has(p.k + ":" + l.n);
+        g.addEventListener("toggle", () => { const k = p.k + ":" + l.n; g.open ? state.openLands.add(k) : state.openLands.delete(k); });
+        const sm = el("summary"); const ow = rs.filter(r => r.o).map(r => r.w);
+        sm.append(el("span","lname", l.n), el("small", null, ow.length ? ow.length + " open · avg " + Math.round(ow.reduce((a,b) => a + b, 0) / ow.length) + " min" : "Closed"));
+        g.appendChild(sm);
+        rs.forEach(r => g.appendChild(row(Object.assign({land: l.n}, r))));
         out.appendChild(g);
       });
-    } else {
+    } else if (open.length || state.showClosed) {
       const g = el("section","group"); g.appendChild(el("h2", null, state.sort === "short" ? "Shortest waits first" : "Longest waits first"));
       const dir = state.sort === "short" ? 1 : -1;
-      open.slice().sort((a,b) => dir * (a.w - b.w) || a.n.localeCompare(b.n)).forEach(r => g.appendChild(row(r)));
-      rides.filter(r => !r.o).sort((a,b) => a.n.localeCompare(b.n)).forEach(r => g.appendChild(row(r)));
+      let list = open.slice().sort((a,b) => dir * (a.w - b.w) || a.n.localeCompare(b.n));
+      if (state.showClosed) list = list.concat(closed.slice().sort((a,b) => a.n.localeCompare(b.n)));
+      const LIMIT = 10, cut = !state.showAll && list.length > LIMIT + 2;
+      (cut ? list.slice(0, LIMIT) : list).forEach(r => g.appendChild(row(r)));
       out.appendChild(g);
+      if (cut){
+        const b = el("button","more","Show all " + list.length); b.type = "button";
+        b.addEventListener("click", () => { state.showAll = true; render(); }); out.appendChild(b);
+      }
+    }
+    if (closed.length){
+      const b = el("button","more", state.showClosed ? "Hide closed rides and shows" : "Show " + closed.length + " closed rides and shows");
+      b.type = "button"; b.addEventListener("click", () => { state.showClosed = !state.showClosed; render(); });
+      out.appendChild(b);
     }
 
     const tip = el("div","note");
@@ -173,7 +195,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
     cta.appendChild(a); out.appendChild(cta);
   }
 
-  ["land","short","long"].forEach(s => $("s-" + s).addEventListener("click", () => { state.sort = s; save(); renderPickers(); render(); }));
+  ["land","short","long"].forEach(s => $("s-" + s).addEventListener("click", () => { state.sort = s; state.showAll = false; save(); renderPickers(); render(); }));
 
   async function load(){
     try {
