@@ -48,6 +48,12 @@ th{background:var(--mint-soft);font-size:13px;text-transform:uppercase;letter-sp
 .cta a{color:var(--teal);font-weight:700}
 .err{color:#b4442f;font-weight:600}
 .foot{color:var(--muted);font-size:12px;margin-top:18px}
+.sswcal{margin-top:14px}
+.sswcal summary{display:inline-block;cursor:pointer;list-style:none;background:var(--teal);color:#fff;font-weight:700;font-size:15px;border-radius:999px;padding:9px 18px}
+.sswcal summary::-webkit-details-marker{display:none}
+.sswcal summary:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+.sswcal-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sswcal-links a{border:1.5px solid var(--teal);color:var(--teal);background:#fff;border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;text-decoration:none}
 </style>
 </head>
 <body>
@@ -106,13 +112,58 @@ th{background:var(--mint-soft);font-size:13px;text-transform:uppercase;letter-sp
   const when = d => { const n = daysUntil(d); if (n > 1) return "in " + n + " days"; if (n === 1) return "tomorrow"; if (n === 0) return "today"; return "already open"; };
   const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
 
+  // Add to my calendar: Apple/iPhone (.ics page), Google, Outlook
+  const SSWCal = (function(){
+    const ICS_PAGE = "https://secondstarwishes.github.io/planning-tools/calendar/";
+    const pad = n => String(n).padStart(2, "0");
+    const enc = encodeURIComponent;
+    function zonedToUtc(y, m, d, h, mi, tz){
+      const guess = Date.UTC(y, m - 1, d, h, mi);
+      const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+      const p = {}; f.formatToParts(new Date(guess)).forEach(x => p[x.type] = x.value);
+      const asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute);
+      return new Date(guess - (asUtc - guess));
+    }
+    const stamp = t => t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()) + "T" + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + "00Z";
+    const ymd = (y, m, d) => { const x = new Date(Date.UTC(y, m - 1, d)); return [x.getUTCFullYear(), pad(x.getUTCMonth() + 1), pad(x.getUTCDate())]; };
+    function span(ev){
+      if (ev.h == null) return { allDay: true, s: ymd(ev.y, ev.m, ev.d), e: ymd(ev.y, ev.m, ev.d + 1) };
+      const s = zonedToUtc(ev.y, ev.m, ev.d, ev.h, ev.mi || 0, ev.z || "America/New_York");
+      return { allDay: false, s: s, e: new Date(s.getTime() + (ev.len || 30) * 60000) };
+    }
+    function google(ev){
+      const x = span(ev);
+      const dates = x.allDay ? x.s.join("") + "/" + x.e.join("") : stamp(x.s) + "/" + stamp(x.e);
+      return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + enc(ev.t) + "&dates=" + dates + "&details=" + enc(ev.ds || "");
+    }
+    function outlook(ev){
+      const x = span(ev);
+      const s = x.allDay ? x.s.join("-") : x.s.toISOString();
+      const e = x.allDay ? x.e.join("-") : x.e.toISOString();
+      return "https://outlook.live.com/calendar/0/action/compose?rru=addevent&subject=" + enc(ev.t) + "&startdt=" + enc(s) + "&enddt=" + enc(e) + "&allday=" + x.allDay + "&body=" + enc(ev.ds || "");
+    }
+    const apple = evs => ICS_PAGE + "#" + enc(JSON.stringify(evs));
+    function link(text, href){ const a = document.createElement("a"); a.textContent = text; a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; }
+    // One event per block. label is the summary text.
+    function block(ev, label){
+      const det = document.createElement("details"); det.className = "sswcal";
+      const sum = document.createElement("summary"); sum.textContent = label || "Add to my calendar";
+      const row = document.createElement("div"); row.className = "sswcal-links";
+      row.appendChild(link("iPhone / Apple", apple([ev])));
+      row.appendChild(link("Google", google(ev)));
+      row.appendChild(link("Outlook", outlook(ev)));
+      det.appendChild(sum); det.appendChild(row);
+      return det;
+    }
+    return { block: block, apple: apple };
+  })();
+
   function syncDest(){
     const dl = document.querySelector('input[name="dest"]:checked').value === "dl";
     $("resort-wrap").hidden = dl;
   }
   document.querySelectorAll('input[name="dest"]').forEach(r => r.addEventListener("change", syncDest));
 
-  // Default check-in: 90 days from today
   const def = addDays(todayUTC(), 90);
   $("checkin").value = def.toISOString().slice(0,10);
   syncDest();
@@ -126,7 +177,7 @@ th{background:var(--mint-soft);font-size:13px;text-transform:uppercase;letter-sp
     const dest = document.querySelector('input[name="dest"]:checked').value;
     const resort = dest === "wdw" && document.querySelector('input[name="resort"]:checked').value === "yes";
     const tz = dest === "wdw" ? "6:00 a.m. Eastern" : "6:00 a.m. Pacific";
-    const days = nights + 1; // check-in through check-out day
+    const days = nights + 1;
     const out = $("out"); out.textContent = ""; out.hidden = false;
 
     const open = addDays(ci, -WINDOW);
@@ -139,6 +190,15 @@ th{background:var(--mint-soft);font-size:13px;text-transform:uppercase;letter-sp
       big.appendChild(el("p",null,"Because you're staying at a Disney Resort hotel, you can book dining for the first " + covered + " days of your stay that morning, all at once."));
     } else {
       big.appendChild(el("p",null,"You'll book one day at a time, exactly 60 days before each day you want to dine."));
+    }
+    if (daysUntil(open) >= 0){
+      const zoneWord = dest === "wdw" ? "Eastern" : "Pacific";
+      const app = dest === "wdw" ? "My Disney Experience app" : "Disneyland app";
+      const desc = (resort
+        ? "Disney dining opens at 6:00 a.m. " + zoneWord + ". Book the first " + Math.min(days, PLUS) + " days of your stay this morning in the " + app + "."
+        : "Disney dining opens at 6:00 a.m. " + zoneWord + " in the " + app + ". You book one day at a time, 60 days before each day you want to dine.")
+        + " Be signed in by 5:55 a.m. Want your Second Star Wishes Travel Specialist to handle it? secondstarwishes.com/portal";
+      big.appendChild(SSWCal.block({ t: "Disney dining reservations open", y: open.getUTCFullYear(), m: open.getUTCMonth() + 1, d: open.getUTCDate(), h: 6, mi: 0, z: dest === "wdw" ? "America/New_York" : "America/Los_Angeles", len: 30, time: "6:00 a.m. " + zoneWord, a: [540, 15], ds: desc }, "Add to my calendar"));
     }
     out.appendChild(big);
 
@@ -173,7 +233,6 @@ th{background:var(--mint-soft);font-size:13px;text-transform:uppercase;letter-sp
     const a = el("a",null,"Start planning with us"); a.href = "https://www.secondstarwishes.com/portal"; a.target = "_blank"; a.rel = "noopener";
     cta.appendChild(a);
     out.appendChild(cta);
-    out.scrollIntoView({behavior:"smooth", block:"start"});
   });
 })();
 </script>

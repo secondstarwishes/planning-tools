@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Add to Calendar | Second Star Wishes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Raleway:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#F2EFEB;--card:#fff;--ink:#1a2e2b;--muted:#56706b;--line:#dcd6cd;--teal:#006D77;--mint-soft:#e3f3ed;--gold:#C5973A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Raleway","Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:32px 16px}
+.card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:16px;padding:22px}
+h1{font-family:"Playfair Display",Georgia,serif;color:var(--teal);font-size:26px;margin:0 0 8px}
+ul{padding-left:20px;margin:12px 0}
+li{margin:6px 0}
+.btn{display:inline-block;background:var(--teal);color:#fff;font-weight:700;text-decoration:none;border:0;border-radius:999px;padding:12px 22px;font:700 16px "Raleway",Arial,sans-serif;cursor:pointer;margin-top:8px}
+.muted{color:var(--muted);font-size:14px}
+.cta{background:var(--mint-soft);border-radius:12px;padding:14px;margin-top:18px;font-size:15px}
+.cta a{color:var(--teal);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1 id="h">Add to your calendar</h1>
+    <p id="intro">Tap the button to save these dates to your calendar.</p>
+    <ul id="list"></ul>
+    <button class="btn" id="dl" type="button">Add to my calendar</button>
+    <p class="muted">On iPhone, tap "Add All" when your calendar opens. On a computer, open the file that downloads.</p>
+  </div>
+  <div class="cta">Want someone watching these dates for you? Your Second Star Wishes Travel Specialist books everything the moment it opens. <a href="https://www.secondstarwishes.com/portal">Start planning with us</a></div>
+</div>
+<script>
+(function(){
+  const pad = n => String(n).padStart(2, "0");
+  let evs = [];
+  try { evs = JSON.parse(decodeURIComponent(location.hash.slice(1))); } catch (e) { evs = []; }
+  if (!Array.isArray(evs) || !evs.length) {
+    document.getElementById("h").textContent = "Nothing to add yet";
+    document.getElementById("intro").textContent = "Head back to the calculator and pick your dates first.";
+    document.getElementById("dl").hidden = true;
+    return;
+  }
+  function zonedToUtc(y, m, d, h, mi, tz) {
+    const guess = Date.UTC(y, m - 1, d, h, mi);
+    const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    const p = {}; f.formatToParts(new Date(guess)).forEach(x => p[x.type] = x.value);
+    const asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute);
+    return new Date(guess - (asUtc - guess));
+  }
+  const stamp = t => t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()) + "T" + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + "00Z";
+  const dstamp = (y, m, d) => { const x = new Date(Date.UTC(y, m - 1, d)); return x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()); };
+  const esc = s => String(s || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  const fold = line => { const out = []; while (line.length > 74) { out.push(line.slice(0, 74)); line = " " + line.slice(74); } out.push(line); return out.join("\r\n"); };
+
+  const list = document.getElementById("list");
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Second Star Wishes//Planning Tools//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+  const now = stamp(new Date());
+  evs.forEach((ev, i) => {
+    const li = document.createElement("li");
+    const nice = new Date(Date.UTC(ev.y, ev.m - 1, ev.d)).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+    li.textContent = ev.t + ": " + nice + (ev.time ? " at " + ev.time : "");
+    list.appendChild(li);
+    lines.push("BEGIN:VEVENT");
+    lines.push("UID:ssw-" + Date.now() + "-" + i + "@secondstarwishes.com");
+    lines.push("DTSTAMP:" + now);
+    if (ev.h == null) {
+      lines.push("DTSTART;VALUE=DATE:" + dstamp(ev.y, ev.m, ev.d));
+      lines.push("DTEND;VALUE=DATE:" + dstamp(ev.y, ev.m, ev.d + 1));
+    } else {
+      const s = zonedToUtc(ev.y, ev.m, ev.d, ev.h, ev.mi || 0, ev.z || "America/New_York");
+      const e = new Date(s.getTime() + (ev.len || 30) * 60000);
+      lines.push("DTSTART:" + stamp(s));
+      lines.push("DTEND:" + stamp(e));
+    }
+    lines.push("SUMMARY:" + esc(ev.t));
+    if (ev.ds) lines.push("DESCRIPTION:" + esc(ev.ds));
+    lines.push("URL:https://www.secondstarwishes.com");
+    (ev.a || []).forEach(min => {
+      lines.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + esc(ev.t), "TRIGGER:-PT" + min + "M", "END:VALARM");
+    });
+    lines.push("END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const ics = lines.map(fold).join("\r\n") + "\r\n";
+
+  function download() {
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "second-star-wishes-dates.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  document.getElementById("dl").addEventListener("click", download);
+  download();
+})();
+</script>
+</body>
+</html>
