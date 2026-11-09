@@ -80,7 +80,7 @@ input:focus-visible,button:focus-visible{outline:3px solid var(--mint);outline-o
 
   <div id="out" aria-live="polite"></div>
 
-  <p class="foot">Heights checked against official park info and current guides in October 2026. Parks can change requirements and close rides for refurbishment, so always check the park app on the day. Made with love by <a href="https://www.secondstarwishes.com" target="_blank" rel="noopener" style="color:inherit">Second Star Wishes</a>.</p>
+  <p class="foot">Heights checked against official park info and current guides in November 2026. Parks can change requirements and close rides for refurbishment, so always check the park app on the day. Made with love by <a href="https://www.secondstarwishes.com" target="_blank" rel="noopener" style="color:inherit">Second Star Wishes</a>.</p>
 </div>
 
 <script>
@@ -91,7 +91,7 @@ window.RIDES = {
    ["Tomorrowland Speedway",32,0,"54 in to drive alone"],
    ["The Barnstormer",35],["Seven Dwarfs Mine Train",38],
    ["Big Thunder Mountain Railroad",38,0,"Lowered from 40 in when it reopened in May 2026"],
-   ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet · Closed for refurbishment Nov 2 to mid-December 2026",{from:"2026-11-02",to:"2026-12-17"}],["Space Mountain",44],["TRON Lightcycle / Run",48]],
+   ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet · Closed for refurbishment Nov 2 to Dec 17, 2026, reopening Dec 18",{from:"2026-11-02",to:"2026-12-17"}],["Space Mountain",44],["TRON Lightcycle / Run",48]],
   "EPCOT": [
    ["Mission: SPACE (Green, no spinning)",40],["Test Track",40],["Soarin'",40],
    ["Guardians of the Galaxy: Cosmic Rewind",42],["Mission: SPACE (Orange, spinning)",44]],
@@ -105,9 +105,9 @@ window.RIDES = {
  dl: { name: "Disneyland", swap: "Rider Switch", parks: {
   "Disneyland Park": [
    ["Autopia",32,0,"54 in to drive alone"],["Chip 'n' Dale's GADGETcoaster",35],
-   ["Millennium Falcon: Smugglers Run",38],["Big Thunder Mountain Railroad",40],["Space Mountain",40],
+   ["Millennium Falcon: Smugglers Run",38],["Big Thunder Mountain Railroad",40],["Space Mountain",40,0,"Closed Nov 10, 2026 (one day)",{from:"2026-11-10",to:"2026-11-10"}],
    ["Tiana's Bayou Adventure",40,0,"Log flume, you'll get wet"],["Star Wars: Rise of the Resistance",40],["Star Tours",40],
-   ["Matterhorn Bobsleds",42],["Indiana Jones Adventure",46,0,"Closed for refurbishment, reopening date not announced","refurb"]],
+   ["Matterhorn Bobsleds",42],["Indiana Jones Adventure",46,0,"Reopened Oct 23, 2026 after refurbishment"]],
   "Disney California Adventure": [
    ["Luigi's Rollickin' Roadsters",32],["Mater's Junkyard Jamboree",32],["Radiator Springs Racers",40],
    ["Guardians of the Galaxy: Mission BREAKOUT!",40],["Soarin'",40],["Jumpin' Jellyfish",40],
@@ -122,9 +122,9 @@ window.RIDES = {
   "Islands of Adventure": [
    ["The Cat in the Hat",36],["The High in the Sky Seuss Trolley Train Ride!",36],["Flight of the Hippogriff",36],
    ["Skull Island: Reign of Kong",36],["Pteranodon Flyers",36,56,"Built for kids 36 to 56 in; taller adults ride only with a child"],
-   ["The Amazing Adventures of Spider-Man",40],["Popeye & Bluto's Bilge-Rat Barges",42],
-   ["Jurassic Park River Adventure",42,0,"Closed for refurbishment, reopening pushed to mid-December 2026","refurb"],
-   ["Dudley Do-Right's Ripsaw Falls",44],["Harry Potter and the Forbidden Journey",48],
+   ["The Amazing Adventures of Spider-Man",40],["Popeye & Bluto's Bilge-Rat Barges",42,0,"Closed for refurbishment Jan 4 to Feb 2, 2027",{from:"2027-01-04",to:"2027-02-02"}],
+   ["Jurassic Park River Adventure",42,0,"Closed for refurbishment, reopening Dec 17, 2026",{from:"2026-01-05",to:"2026-12-16"}],
+   ["Dudley Do-Right's Ripsaw Falls",44],["Harry Potter and the Forbidden Journey",48,0,"Closed for refurbishment Feb 8 to 19, 2027",{from:"2027-02-08",to:"2027-02-19"}],
    ["Hagrid's Magical Creatures Motorbike Adventure",48],["Jurassic World VelociCoaster",51],
    ["Doctor Doom's Fearfall",52],["The Incredible Hulk Coaster",54]],
   "Epic Universe": [
@@ -136,7 +136,7 @@ window.RIDES = {
   "Universal Studios Hollywood": [
    ["The Secret Life of Pets: Off the Leash!",34],["Flight of the Hippogriff",39],
    ["Despicable Me Minion Mayhem",40,0,"Under 40 in can use the non-moving seats"],["The Simpsons Ride",40],
-   ["Mario Kart: Bowser's Challenge",40],["TRANSFORMERS: The Ride-3D",40],["Jurassic World - The Ride",42,0,"You'll get wet"],
+   ["Mario Kart: Bowser's Challenge",40],["TRANSFORMERS: The Ride-3D",40],["Jurassic World - The Ride",42,0,"You'll get wet · Closed for refurbishment, reopening Nov 21, 2026",{from:"2026-09-30",to:"2026-11-20"}],
    ["Harry Potter and the Forbidden Journey",48],["Revenge of the Mummy - The Ride",48],
    ["Fast & Furious: Hollywood Drift",51,0,"New in 2026"]]
  }}
@@ -191,7 +191,7 @@ window.RIDES = {
         const [name, min, max, note, status] = r;
         const row = el("div","ride");
         let cls, txt;
-        const today = new Date().toISOString().slice(0,10);
+        const _d = new Date(); const today = _d.getFullYear() + "-" + String(_d.getMonth()+1).padStart(2,"0") + "-" + String(_d.getDate()).padStart(2,"0");
         const closedNow = status === "refurb" || (status && status.from && today >= status.from && today <= status.to);
         if (closedNow) { cls = "closed"; txt = "Closed now"; }
         else {
